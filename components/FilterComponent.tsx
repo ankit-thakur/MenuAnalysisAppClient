@@ -151,7 +151,6 @@ const FilterComponent: React.FC<CheckboxListProps> = ({ name, checkboxItems, onS
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#f5f5f5",
     marginRight: 10,
   },
   button: {

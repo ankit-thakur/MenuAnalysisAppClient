@@ -34,8 +34,12 @@ const SearchBar: React.FC<SearchBarProps> = ({ connectionKey, onSelect }) => {
   const [query, setQuery] = useState('');
   const [showResults, setShowResults] = useState(false);
   const [results, setResults] = useState<SearchResult[]>();
+  const [showSearchError, setShowSearchError] = useState(false);
+  const [showEmptyResultError, setShowEmptyResultError] = useState(false);
 
   const handleSearch = async () => {
+    setShowSearchError(false); // Reset error state before new search
+    setShowEmptyResultError(false); // Show error message above search bar
 
     const apiEndpoint = 'https://5g1l055sob.execute-api.us-east-1.amazonaws.com/prod/searchPlaceId';
     const params = {
@@ -48,11 +52,21 @@ const SearchBar: React.FC<SearchBarProps> = ({ connectionKey, onSelect }) => {
       console.log(searchResults); // Handle response
       const data = await searchResults.data;
 
+      if (!data || !Array.isArray(data) || data.length === 0) {
+        console.warn("No results found for the query:", query);
+        setResults([]);
+        setShowResults(false);
+        setShowEmptyResultError(true); // Show error message above search bar
+        return;
+      }
+
       setResults(data)
       setShowResults(true);
       Keyboard.dismiss();
     } catch (error) {
-      console.error(error);
+      console.error("Error retrieving search results: " + error);
+      // Show error message above search bar
+      setShowSearchError(true); // maybe implement a timer for the error to fade away
     }
   };
 
@@ -106,9 +120,20 @@ const SearchBar: React.FC<SearchBarProps> = ({ connectionKey, onSelect }) => {
 
   return (
     <View style={styles.container}>
+      {showSearchError && (
+        <Text style={styles.searchError}>
+          Error retrieving search results. Please try again.
+        </Text>
+      )}
+      {showEmptyResultError && (
+        <Text style={styles.searchError}>
+          No results found. Please try again.
+        </Text>
+      )}
       <TextInput
         style={styles.searchBar}
-        placeholder="Search..."
+        placeholder="The Maharaja Boston..."
+        placeholderTextColor="#808080"
         value={query}
         onChangeText={setQuery}
         onSubmitEditing={handleSearch}
@@ -168,6 +193,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Inter_400Regular',
   },
+  searchError: {
+    color: 'red', 
+    marginBottom: 10
+  }
 });
 
 export default SearchBar;

@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { View, StyleSheet, Button, ScrollView, FlatList, Text, StatusBar } from 'react-native';
 import { RouteProp, useNavigation } from '@react-navigation/native';
-import SearchBar from '../components/SearchBar';
-import FilterDropdownComponent from '../components/FilterComponent';
-import MenuInputComponent from '../components/MenuInputComponent';
+import SearchBar from './SearchBar';
+import FilterDropdownComponent from './FilterComponent';
+import MenuInputComponent from './MenuInputComponent';
 import AlertOverlay from '@/components/AlertOverlay';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from './App';
+// import { RootStackParamList } from '../app/App';
 // import { useWebSocket } from '../websocket/WebSocketContext'; // Import the WebSocket hook
 import webSocketInstance from '@/websocket/WebSocketInstance';
 import 'react-native-get-random-values'
@@ -23,9 +23,19 @@ interface SearchPlaceResult {
   menu_url: string;
 }
 
-type HomeScreenProps = NativeStackScreenProps<RootStackParamList, "Home">;
+// type HomeScreenProps = NativeStackScreenProps<RootStackParamList, "Home">;
 
-const HomeScreen: React.FC<HomeScreenProps> = ({ route, navigation }) => {
+type Props = {
+  placeId?: string;
+  connectionKey: string;
+};
+
+
+
+function HomeScreen({ placeId, connectionKey }: Props) {
+
+// const HomeScreen: React.FC<HomeScreenProps> = ({ route, navigation }) => {
+
 
   const [selectedAllergens, setSelectedAllergens] = useState<CheckboxItem[]>([]);
   const [selectedDiets, setSelectedDiets] = useState<CheckboxItem[]>([]);
@@ -36,7 +46,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ route, navigation }) => {
   const [showMenuInput, setShowMenuInput] = useState<boolean>(false);
   const [searchPlaceResult, setSearchPlaceResult] = useState<SearchPlaceResult>();
 
-  const { connectionKey, placeId } = route.params;
+  // const { connectionKey, placeId } = route.params;
 
   console.log("*** ConnectionKey: ", connectionKey);
   console.log("*** placeId: ", placeId);
@@ -213,7 +223,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ route, navigation }) => {
       response = await axios.post(queryRestaurantsApiEndpoint, params);
       console.log("*** queryRestaurants: ", response); // Handle response
     } catch (error) {
-      console.error(error);
+      console.error("* Error querying restaurant: ", error);
     }
 
     // response?.
@@ -244,7 +254,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ route, navigation }) => {
         showMenuInput ? <MenuInputComponent onSubmit={ onSubmitMenuInput }/> : null
       }
       <View style={styles.results}>
-        <Text style={styles.itemHeaders}>{ safeResults === undefined ? `There are 0 results you can safely have.` : `Here's ${safeResults.length} results you can safely eat.` }</Text>
+        {
+          safeResults.length !== 0 ? <Text style={styles.itemHeaders}>{`Here's ${safeResults.length} results you can safely eat.`}</Text> : null
+        }
         <ScrollView style={styles.resultsContainer}>
           <FlatList
             data={ safeResults }
@@ -258,7 +270,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ route, navigation }) => {
             }
             keyExtractor={item => item.name}
           />
-          <Text style={styles.itemHeaders}>Stay away from the following: </Text>
+          {
+            unsafeResults.length !== 0 ? <Text style={styles.itemHeaders}>Stay away from the following: </Text> : null
+          }
+          
           <FlatList
             data={ unsafeResults }
             renderItem={({item}) =>
@@ -323,12 +338,12 @@ const styles = StyleSheet.create({
   },
   itemHeaders: {
     fontFamily: 'Inter_400Regular',
-    fontSize: 12,
+    fontSize: 14,
     paddingBottom: 5,
     marginHorizontal: 16,
   },
   item: {
-    backgroundColor: '#FFF',
+    backgroundColor: '#dedede',
     padding: 10,
     marginVertical: 8,
     marginHorizontal: 16,

@@ -19,74 +19,127 @@ interface MenuInputProps {
 
 const MenuInputComponent: React.FC<MenuInputProps> = ({ onSubmit }) => {
 
-    const [panelVisible, setPanelVisible] = useState(false);
-    const [menuInputText, setMenuInputText] = useState('');
-    const [emailInputText, setEmailInputText] = useState('');
-    const [checked, setChecked] = React.useState(false);
-    const [isDisabled, setIsDisabled] = React.useState(true);
-    const [isSubmitted, setIsSubmitted] = useState(false);
+  const [panelVisible, setPanelVisible] = useState(false);
+  const [menuInputText, setMenuInputText] = useState('');
+  const [emailInputText, setEmailInputText] = useState('');
+  const [checked, setChecked] = React.useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [showMenuInputError, setShowMenuInputError] = useState(false);  const [showEmailInputError, setShowEmailInputError] = useState(false);
 
 
-    const slideAnim = useRef(new Animated.Value(0)).current; // Initialize slide animation value
+  const slideAnim = useRef(new Animated.Value(0)).current; // Initialize slide animation value
 
-    // opens MenuInput panel once on component mount
-    useEffect(() => {
-        openPanel();
-    }, []);
+  // opens MenuInput panel once on component mount
+  useEffect(() => {
+      openPanel();
+  }, []);
 
 
-    const openPanel = () => {
-        setPanelVisible(true);
-        Animated.timing(slideAnim, {
-            toValue: 1,
-            duration: 300,
-            easing: Easing.out(Easing.exp),
-            useNativeDriver: true,
-        }).start();
-    };
-    
-    const closePanel = () => {
-        Animated.timing(slideAnim, {
-            toValue: 0,
-            duration: 300,
-            easing: Easing.in(Easing.exp),
-            useNativeDriver: true,
-        }).start(() => setPanelVisible(false));
-    };
-    
-    const translateY = slideAnim.interpolate({
-        inputRange: [0, 1],
-        outputRange: [500, 0], // Slide up from 500px to 0px (fully visible)
-    });
+  const openPanel = () => {
+      setPanelVisible(true);
+      Animated.timing(slideAnim, {
+          toValue: 1,
+          duration: 300,
+          easing: Easing.out(Easing.exp),
+          useNativeDriver: true,
+      }).start();
+  };
+  
+  const closePanel = () => {
+      Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 300,
+          easing: Easing.in(Easing.exp),
+          useNativeDriver: true,
+      }).start(() => setPanelVisible(false));
+  };
+  
+  const translateY = slideAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [500, 0], // Slide up from 500px to 0px (fully visible)
+  });
 
-    const handleMenuInputChange = (input: string) => {
-        setMenuInputText(input);
-        input.length > 0 ? setIsDisabled(false) : setIsDisabled(true); // Enable button only if input is not empty
-    }; 
+  const handleMenuInputChange = (input: string) => {
+    setMenuInputText(input);
+  };
 
-    const handleSubmit = (menuInputText: string, emailInputText: string, checked: boolean) => {
+  const handleEmailInputChange = (input: string) => {
+    setEmailInputText(input);
+  };
+
+  const handleSubmit = (menuInputText: string, emailInputText: string, checked: boolean) => {
+    if (!showMenuInputError && !showEmailInputError && menuInputText) {
+      console.log("Menu URL and email are valid. Submitting...");
       setIsSubmitted(true);
       onSubmit(menuInputText, emailInputText, checked);
     }
+  }
 
-    return(
-        <View style={styles.container}>
-            <Modal
-                transparent={true}
-                visible={panelVisible}
-                animationType="fade"
-                testID="filter-panel-modal"
-            >
-                <Pressable style={styles.overlay} onPress={closePanel} />
-                <Animated.View style={[ styles.panel, { transform: [{ translateY }] } ]}>
-                  {!isSubmitted ? (
-                    <>
-                      <Text style={styles.mainMessage}>We haven't been here before! Help us out by providing the URL to the restaurant's menu.
-                        This might take a few minutes, come back later for the results or provide your email so we can notify you when the results are ready!</Text>
+  const isValidHtmlOrPdfUrl = () => {
+    setShowMenuInputError(false);
+    try {
+      const parsedUrl = new URL(menuInputText);
 
-                      <div id="menu-input-panel" style={styles.inputSection}>
+      // Ensure the protocol is HTTP or HTTPS
+      if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+        setShowMenuInputError(true);
+      }
 
-                        <Text style={styles.panelHeader}>Provide the URL to the menu.</Text>
+      // Extract file extension from pathname
+      const pathname = parsedUrl.pathname.toLowerCase();
+
+      if (pathname.endsWith('.pdf') || pathname.endsWith('.html') || pathname.endsWith('.htm')) {
+        setShowMenuInputError(true);
+      }
+    } catch (e) {
+      setShowMenuInputError(true);
+    }
+  }
+
+  const isValidEmail = () => {
+    setShowEmailInputError(false);
+
+    if (!emailInputText || emailInputText.trim() === '') {
+      setShowEmailInputError(false);
+      return;
+    }
+
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(emailInputText.toLowerCase())) {
+      setShowEmailInputError(true);
+    }
+  }
+
+  const isSubmitDisabled = () => {
+    if (showMenuInputError || showEmailInputError || !menuInputText) {
+      return true; // Disable button if there are errors or inputs are empty
+    }
+    return false; // Enable button if no errors and inputs are valid
+  }
+
+  return(
+      <View style={styles.container}>
+          <Modal
+              transparent={true}
+              visible={panelVisible}
+              animationType="fade"
+              testID="filter-panel-modal"
+          >
+              <Pressable style={styles.overlay} onPress={closePanel} />
+              <Animated.View style={[ styles.panel, { transform: [{ translateY }] } ]}>
+                {!isSubmitted ? (
+                  <>
+                    <Text style={styles.mainMessage}>We haven't tried this place yet!</Text>
+
+                    <div id="menu-input-panel" style={styles.inputSection}>
+
+                      <Text style={styles.inputHeader}>Help us out by providing the URL to the restaurant's menu:</Text>
+                      <div>
+                        {showMenuInputError && (
+                          <Text style={styles.inputError}>
+                            Menu URL format is invalid. Please try again.
+                          </Text>
+                        )}
                     
                         <SafeAreaProvider>
                           <SafeAreaView
@@ -95,19 +148,28 @@ const MenuInputComponent: React.FC<MenuInputProps> = ({ onSubmit }) => {
                               <TextInput
                                   editable
                                   multiline
-                                  style={styles.checkboxText}
+                                  style={styles.inputText}
                                   onChangeText={input => handleMenuInputChange(input)}
+                                  onBlur={() => isValidHtmlOrPdfUrl()}
                                   value={menuInputText}
                                   placeholder="Enter Menu URL"
+                                  placeholderTextColor="#808080"
                                   keyboardType="numeric"
                               />
                           </SafeAreaView>
                         </SafeAreaProvider>
                       </div>
+                    </div>
 
-                      <div id="email-input-panel" style={styles.inputSection}>
-                        <Text style={styles.panelHeader}>Provide email.</Text>
-                      
+                    <div id="email-input-panel" style={styles.inputSection}>
+                      <Text style={styles.inputHeader}>This might take a few minutes, come back later for the results or provide your email so we can notify you when the results are ready!</Text>
+                  
+                      <div>
+                        {showEmailInputError && (
+                          <Text style={styles.inputError}>
+                            Email format is invalid. Please try again.
+                          </Text>
+                        )}
                         <SafeAreaProvider>
                           <SafeAreaView
                               style={styles.container}    
@@ -115,37 +177,44 @@ const MenuInputComponent: React.FC<MenuInputProps> = ({ onSubmit }) => {
                               <TextInput
                                   editable
                                   multiline
-                                  style={styles.checkboxText}
-                                  onChangeText={input => setEmailInputText(input)}
+                                  style={styles.inputText}
+                                  onChangeText={input => handleEmailInputChange(input)}
+                                  onBlur={() => isValidEmail()}
                                   value={emailInputText}
                                   placeholder="Enter email"
+                                  placeholderTextColor="#808080"
                                   keyboardType="numeric"
                               />
                           </SafeAreaView>
                         </SafeAreaProvider>
-                        <Checkbox
-                          status={checked ? 'checked' : 'unchecked'}
-                          onPress={() => setChecked(!checked)}
-                        />
-                        <Text onPress={() => setChecked(!checked)}>Sign up for our interest list.</Text>
                       </div>
 
-                      <Button disabled={isDisabled} onPress={() => handleSubmit(menuInputText, emailInputText, checked)} title="Submit">
-                        <Text>Submit</Text>
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <Text style={styles.mainMessage}>Thanks for your input! We'll notify you when the results are ready. Feel free to continue browsing!</Text>
-                      <Button onPress={closePanel} title="Close">
-                        <Text>Close</Text>
-                      </Button>
-                    </>
-                  )}
-                </Animated.View>
-            </Modal>
-        </View>
-    )
+                    </div>
+                      
+                    <div style={styles.checkboxSection}>
+                      <Checkbox
+                        status={checked ? 'checked' : 'unchecked'}
+                        onPress={() => setChecked(!checked)}
+                      />
+                      <Text onPress={() => setChecked(!checked)}>Sign up for our interest list</Text>
+                    </div>
+
+                    <Button disabled={isSubmitDisabled()} onPress={() => handleSubmit(menuInputText, emailInputText, checked)} title="Submit">
+                      <Text>Submit</Text>
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Text style={styles.mainMessage}>Thanks for your input! We'll notify you when the results are ready. Feel free to continue browsing!</Text>
+                    <Button onPress={closePanel} title="Close">
+                      <Text>Close</Text>
+                    </Button>
+                  </>
+                )}
+              </Animated.View>
+          </Modal>
+      </View>
+  )
 }
 
 
@@ -208,6 +277,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 10,
     textAlign: "center",
+  },
+  inputHeader: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    marginBottom: 6,
+  },
+  inputText: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    padding: 6
+  },
+  inputError: {
+    color: 'red',
+    fontSize: 12,
+  },
+  checkboxSection: {
+    display: "flex",
+    alignItems: "center",
+    marginTop: 0,    // top margin
+    marginBottom: 20, // bottom margin
+    marginLeft: 10,   // left margin
+    marginRight: 10,  // right margin
   }
 });
 
