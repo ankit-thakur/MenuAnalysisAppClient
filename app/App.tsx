@@ -2,6 +2,9 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from './HomeScreen';
+import QRScanner from '../components/QRScanner';
+
+
 import webSocketInstance from '@/websocket/WebSocketInstance';
 // import { WebSocketProvider } from '../websocket/WebSocketContext';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_700Bold } from '@expo-google-fonts/inter'; // https://fonts.google.com/specimen/Inter

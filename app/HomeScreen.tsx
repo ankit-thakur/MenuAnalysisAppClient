@@ -4,6 +4,7 @@ import { RouteProp, useNavigation } from '@react-navigation/native';
 import SearchBar from '../components/SearchBar';
 import FilterDropdownComponent from '../components/FilterComponent';
 import MenuInputComponent from '../components/MenuInputComponent';
+import QRScanner from '../components/QRScanner';
 import AlertOverlay from '@/components/AlertOverlay';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from './App';
@@ -236,6 +237,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ route, navigation }) => {
         errorMessage="Unable to load data!"
       />
       <SearchBar onSelect={ queryRestaurants } connectionKey={connectionKey}/>
+      <QRScanner />
+
       <View style={styles.filtersContainer} testID='filtersContainer'>
         <FilterDropdownComponent name='Allergens' checkboxItems={ allergenFilters } onSelect={ handleAllergensChange }/>
         <FilterDropdownComponent name='Diets' checkboxItems={ dietaryFilters } onSelect={ handleDietsChange }/>
