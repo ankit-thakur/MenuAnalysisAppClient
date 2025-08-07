@@ -30,8 +30,6 @@ type Props = {
   connectionKey: string;
 };
 
-
-
 function HomeScreen({ placeId, connectionKey }: Props) {
 
 // const HomeScreen: React.FC<HomeScreenProps> = ({ route, navigation }) => {
@@ -84,32 +82,32 @@ function HomeScreen({ placeId, connectionKey }: Props) {
   }, [results, selectedAllergens, selectedDiets]);
 
 
-  useEffect(() => {
+  // useEffect(() => {
 
-    const handler = async (message: any) => {
-      console.log("* Message registered: ", message);
-      if (Array.isArray(message)) {
-        if (message[0] === "menuAlreadyProcessed") {
-          console.log("* MenuAlreadyProcessed *");
-          setShowMenuInput(false);
-          setResults(message[1]);
-        } else if (message[0] === "finalMenuOutputAction") {
-          console.log("* finalMenuOutputAction, querying table *");
-          setShowMenuInput(false);
-          queryRestaurants(searchPlaceResult);
+  //   const handler = async (message: any) => {
+  //     console.log("* Message registered: ", message);
+  //     if (Array.isArray(message)) {
+  //       if (message[0] === "menuAlreadyProcessed") {
+  //         console.log("* MenuAlreadyProcessed *");
+  //         setShowMenuInput(false);
+  //         setResults(message[1]);
+  //       } else if (message[0] === "finalMenuOutputAction") {
+  //         console.log("* finalMenuOutputAction, querying table *");
+  //         setShowMenuInput(false);
+  //         queryRestaurants(searchPlaceResult);
 
-        } else if (message[0] === "menuNotProcessed") {
-          setShowMenuInput(true);
-        }
-      } else {
-        console.log("* useEffect message handler");
-        setResults((prevMessages) => [...prevMessages, message[1]]);
-      }
-    };
+  //       } else if (message[0] === "menuNotProcessed") {
+  //         setShowMenuInput(true);
+  //       }
+  //     } else {
+  //       console.log("* useEffect message handler");
+  //       setResults((prevMessages) => [...prevMessages, message[1]]);
+  //     }
+  //   };
   
-    webSocketInstance.registerMessageHandler(handler);
+  //   webSocketInstance.registerMessageHandler(handler);
 
-  }, [searchPlaceResult]);
+  // }, [searchPlaceResult]);
 
   useEffect(() => {
     console.log("* results have changed: ", results);
@@ -222,19 +220,20 @@ function HomeScreen({ placeId, connectionKey }: Props) {
     try {
       response = await axios.post(queryRestaurantsApiEndpoint, params);
       console.log("*** queryRestaurants: ", response); // Handle response
+      
+      if (response.data && response.data.length > 0) {
+        setResults(response.data);
+        setShowMenuInput(false);
+      } else {
+        console.log("No results found for the given placeId.");
+        setShowMenuInput(true);
+      }
     } catch (error) {
-      console.error("* Error querying restaurant: ", error);
+      console.error(error);
+      // setShowMenuInput(true);
     }
-
-    // response?.
-    // response?.data ? S(false) : S(true);
-
     console.log("* showMenuInput: ", showMenuInput);
-
   };
-
-  console.log("* results: ", results);
-
 
   return (
     <View style={styles.container}>
@@ -255,7 +254,7 @@ function HomeScreen({ placeId, connectionKey }: Props) {
       }
       <View style={styles.results}>
         {
-          safeResults.length !== 0 ? <Text style={styles.itemHeaders}>{`Here's ${safeResults.length} results you can safely eat.`}</Text> : null
+          safeResults.length !== 0 ? <Text style={styles.itemHeaders}>{`Based on what we know, here's ${safeResults.length} results:`}</Text> : null
         }
         <ScrollView style={styles.resultsContainer}>
           <FlatList
@@ -296,7 +295,7 @@ function HomeScreen({ placeId, connectionKey }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    padding: 4,
   },
   filtersContainer: {
     flexDirection: 'row',
