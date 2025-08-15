@@ -91,8 +91,8 @@ const FilterComponent: React.FC<CheckboxListProps> = ({ name, checkboxItems, onS
           styles.button,
           {
             backgroundColor:
-              buttonActive || selectedCount > 0 ? "#3498db" : "#fff",
-          }, // Toggle button color
+              buttonActive || selectedCount > 0 ? "#4d7f38" : "#fff",
+          },
         ]}
         onPress={openPanel}
       >

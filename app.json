@@ -10,20 +10,21 @@
     "splash": {
       "image": "./assets/images/anomo-logo-text-1.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#fff8e5"
     },
     "ios": {
       "bundleIdentifier": "com.kittech.anomo",
       "buildNumber": "1.0.0",
       "supportsTablet": true,
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "This app needs camera access to scan QR codes and barcodes for faster input."
       }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/anomo-logo-text-1.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#fff8e5"
       }
     },
     "web": {
@@ -32,9 +33,14 @@
       "favicon": "./assets/images/anomo-logo-2.png"
     },
     "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow ANOMO to access your camera"
+        }
+      ],
       "expo-router",
       "expo-font",
-      "expo-barcode-scanner",
       "expo-web-browser"
     ],
     "experiments": {

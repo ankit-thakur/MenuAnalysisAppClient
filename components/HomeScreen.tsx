@@ -1,20 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, StyleSheet, Button, ScrollView, FlatList, Text, StatusBar } from 'react-native';
-import { RouteProp, useNavigation } from '@react-navigation/native';
+import { View, StyleSheet, Button, ScrollView, FlatList, Text, StatusBar, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import SearchBar from './SearchBar';
 import FilterDropdownComponent from './FilterComponent';
 import MenuInputComponent from './MenuInputComponent';
 import QRScanner from './QRScanner';
-import AlertOverlay from '@/components/AlertOverlay';
-import { StackNavigationProp } from '@react-navigation/stack';
-// import { RootStackParamList } from '../app/App';
-// import { useWebSocket } from '../websocket/WebSocketContext'; // Import the WebSocket hook
-import webSocketInstance from '@/websocket/WebSocketInstance';
 import 'react-native-get-random-values'
-import { nanoid } from 'nanoid';
-import fs from 'fs';
 import axios from 'axios';
-import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 
 interface SearchPlaceResult {
@@ -24,17 +15,11 @@ interface SearchPlaceResult {
   menu_url: string;
 }
 
-// type HomeScreenProps = NativeStackScreenProps<RootStackParamList, "Home">;
-
 type Props = {
   placeId?: string;
-  connectionKey: string;
 };
 
-function HomeScreen({ placeId, connectionKey }: Props) {
-
-// const HomeScreen: React.FC<HomeScreenProps> = ({ route, navigation }) => {
-
+function HomeScreen({ placeId }: Props) {
 
   const [selectedAllergens, setSelectedAllergens] = useState<CheckboxItem[]>([]);
   const [selectedDiets, setSelectedDiets] = useState<CheckboxItem[]>([]);
@@ -45,13 +30,8 @@ function HomeScreen({ placeId, connectionKey }: Props) {
   const [showMenuInput, setShowMenuInput] = useState<boolean>(false);
   const [searchPlaceResult, setSearchPlaceResult] = useState<SearchPlaceResult>();
 
-  // const { connectionKey, placeId } = route.params;
-
-  console.log("*** ConnectionKey: ", connectionKey);
-  console.log("*** placeId: ", placeId);
-
   useEffect(() => {
-    queryRestaurants({place_id: placeId, connectionKey: connectionKey});
+    queryRestaurants({ place_id: placeId });
   }, [placeId]);
 
  
@@ -64,12 +44,10 @@ function HomeScreen({ placeId, connectionKey }: Props) {
     let unsafe: React.SetStateAction<any[]> = [];
 
     results.forEach((item: any) => {
-      // if item has an allergen that is also in the list of filters than it is unsafe
+      // if item has an allergen that is also in the list of filters then it is unsafe
       const allergyIntersection = item.allergens?.filter((allergy: string) => selectedAllergenFilterSet.has(allergy.toLowerCase())) ?? [];
       const dietIntersection = item.diet_restrictions?.filter((diet: string) => selectedDietFilterSet.has(diet.toLowerCase())) ?? [];
       
-      // allergyIntersection.length > 0 || dietIntersection.length > 0 ? unsafe.push(item) : safe.push(item);
-
       if (allergyIntersection?.length || dietIntersection?.length) {
         unsafe.push(item);
       } else {
@@ -81,40 +59,6 @@ function HomeScreen({ placeId, connectionKey }: Props) {
     setUnsafeResults(unsafe);
     
   }, [results, selectedAllergens, selectedDiets]);
-
-
-  // useEffect(() => {
-
-  //   const handler = async (message: any) => {
-  //     console.log("* Message registered: ", message);
-  //     if (Array.isArray(message)) {
-  //       if (message[0] === "menuAlreadyProcessed") {
-  //         console.log("* MenuAlreadyProcessed *");
-  //         setShowMenuInput(false);
-  //         setResults(message[1]);
-  //       } else if (message[0] === "finalMenuOutputAction") {
-  //         console.log("* finalMenuOutputAction, querying table *");
-  //         setShowMenuInput(false);
-  //         queryRestaurants(searchPlaceResult);
-
-  //       } else if (message[0] === "menuNotProcessed") {
-  //         setShowMenuInput(true);
-  //       }
-  //     } else {
-  //       console.log("* useEffect message handler");
-  //       setResults((prevMessages) => [...prevMessages, message[1]]);
-  //     }
-  //   };
-  
-  //   webSocketInstance.registerMessageHandler(handler);
-
-  // }, [searchPlaceResult]);
-
-  useEffect(() => {
-    console.log("* results have changed: ", results);
-  }, [results]);
-
-  console.log("* useEffect message: ", results);
 
   type ItemProps = {name: string, price: string, ing_list: string[], allergens: string[], diet_restrictions: string[]};
   const Item = ({name, price, ing_list, allergens, diet_restrictions}: ItemProps) => (
@@ -188,13 +132,12 @@ function HomeScreen({ placeId, connectionKey }: Props) {
       address: searchPlaceResult?.address,
       menu_url: menuInput,
       email: emailInput,
-      addToList: addToList,
-      connectionKey: connectionKey
+      addToList: addToList
     }
 
     try {
       const response = await axios.post(apiEndpoint, params);
-      console.log(response); // Handle response
+      // console.log(response); // Handle response
       // const data = await response.data;
     } catch (error) {
       console.error(error);
@@ -203,7 +146,7 @@ function HomeScreen({ placeId, connectionKey }: Props) {
   
 
   const queryRestaurants = async (result: any) => {
-    console.log("* query restaurants input: ", result);
+    // console.log("* query restaurants input: ", result);
     setSearchPlaceResult({
       place_id: result.place_id,
       name: result.name,
@@ -213,20 +156,21 @@ function HomeScreen({ placeId, connectionKey }: Props) {
 
     const queryRestaurantsApiEndpoint = 'https://2ojlzevla1.execute-api.us-east-1.amazonaws.com/prod/queryRestaurants';
     const params = {
-      placeId: result.place_id,
-      connectionKey: connectionKey
+      placeId: result.place_id
     }
     
     var response;
     try {
       response = await axios.post(queryRestaurantsApiEndpoint, params);
-      console.log("*** queryRestaurants: ", response); // Handle response
+      console.log("*** queryRestaurants response.data: ", response.data); // Handle response
       
       if (response.data && response.data.length > 0) {
         setResults(response.data);
+        // onShowMenuInput(false);
         setShowMenuInput(false);
       } else {
         console.log("No results found for the given placeId.");
+        // onShowMenuInput(true);
         setShowMenuInput(true);
       }
     } catch (error) {
@@ -236,24 +180,25 @@ function HomeScreen({ placeId, connectionKey }: Props) {
     console.log("* showMenuInput: ", showMenuInput);
   };
 
+  const onShowMenuInput = (showInput: boolean) => {
+    setShowMenuInput(showInput);
+  }
+
   return (
     <View style={styles.container}>
-      <AlertOverlay
-        visible={alertVisible}
-        onClose={() => setAlertVisible(false)}
-        externalLink="https://example.com"
-        internalPage="Help"
-        errorMessage="Unable to load data!"
-      />
-      <SearchBar onSelect={ queryRestaurants } connectionKey={connectionKey}/>
-      <QRScanner />
+      <SearchBar onSelect={ queryRestaurants }/>
+
+      {/* <QRScanner /> */}
 
       <View style={styles.filtersContainer} testID='filtersContainer'>
         <FilterDropdownComponent name='Allergens' checkboxItems={ allergenFilters } onSelect={ handleAllergensChange }/>
         <FilterDropdownComponent name='Diets' checkboxItems={ dietaryFilters } onSelect={ handleDietsChange }/>
       </View>
+      {/* <MenuInputComponent onShowMenuInput={ onShowMenuInput } onSubmit={ onSubmitMenuInput }/>  */}
       {
-        showMenuInput ? <MenuInputComponent onSubmit={ onSubmitMenuInput }/> : null
+        showMenuInput ? 
+            <MenuInputComponent onShowMenuInput={ onShowMenuInput } onSubmit={ onSubmitMenuInput }/> 
+          : null
       }
       <View style={styles.results}>
         {
@@ -299,6 +244,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 4,
+    backgroundColor: '#fff8e5',
   },
   filtersContainer: {
     flexDirection: 'row',
@@ -345,7 +291,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
   },
   item: {
-    backgroundColor: '#dedede',
+    // backgroundColor: '#dedede',
+    backgroundColor: '#ffffffff',
     padding: 10,
     marginVertical: 8,
     marginHorizontal: 16,

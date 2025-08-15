@@ -15,11 +15,10 @@ import axios from 'axios';
 type SearchResult = { name: string, formatted_address: string, place_id: string };
 
 interface SearchBarProps {
-  connectionKey: string,
   onSelect: (selected: any) => void;
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ connectionKey, onSelect }) => {
+const SearchBar: React.FC<SearchBarProps> = ({ onSelect }) => {
 
   const [query, setQuery] = useState('');
   const [showResults, setShowResults] = useState(false);
@@ -61,8 +60,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ connectionKey, onSelect }) => {
   };
 
   const handleSelectResult = async (result: SearchResult) => {
-    console.log("* handleSelectResult result: ", result);
-    console.log("* handleSelectResult connectionKey: ", connectionKey);
+    // console.log("* handleSelectResult result: ", result);
 
     onSelect(result);
 
