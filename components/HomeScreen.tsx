@@ -6,6 +6,7 @@ import MenuInputComponent from './MenuInputComponent';
 import QRScanner from './QRScanner';
 import 'react-native-get-random-values'
 import axios from 'axios';
+import { Link } from "expo-router";
 
 
 interface SearchPlaceResult {
@@ -200,6 +201,9 @@ function HomeScreen({ placeId }: Props) {
             <MenuInputComponent onShowMenuInput={ onShowMenuInput } onSubmit={ onSubmitMenuInput }/> 
           : null
       }
+
+      <Link href="/help">Go to Help</Link>
+
       <View style={styles.results}>
         {
           safeResults.length !== 0 ? <Text style={styles.itemHeaders}>{`Based on what we know, here's ${safeResults.length} results:`}</Text> : null

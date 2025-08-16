@@ -1,14 +1,6 @@
-import { useLocalSearchParams } from 'expo-router';
-import HomeScreen from '@/components/HomeScreen';
+// app/index.tsx
+import { Redirect } from "expo-router";
 
 export default function Index() {
-  const { placeId } = useLocalSearchParams<{ placeId?: string }>();
-
-  placeId ? console.log(`Place ID: ${placeId}`) : console.log('No Place ID');
-
-  return (
-    <HomeScreen
-      placeId={placeId as string | undefined}
-    />
-  );
+  return <Redirect href="/home" />;
 }
