@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, StyleSheet, Button, ScrollView, FlatList, Text, StatusBar, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { View, StyleSheet, Button, ScrollView, FlatList, Text, StatusBar, TouchableOpacity } from 'react-native';
 import SearchBar from './SearchBar';
 import FilterDropdownComponent from './FilterComponent';
 import MenuInputComponent from './MenuInputComponent';
 import QRScanner from './QRScanner';
 import 'react-native-get-random-values'
 import axios from 'axios';
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 
 
 interface SearchPlaceResult {
@@ -202,7 +202,12 @@ function HomeScreen({ placeId }: Props) {
           : null
       }
 
-      <Link href="/help">Go to Help</Link>
+      <TouchableOpacity
+        style={styles.helpButton}
+        onPress={() => router.push('/help')}
+      >
+        <Text style={styles.helpText}>?</Text>
+      </TouchableOpacity>
 
       <View style={styles.results}>
         {
@@ -316,7 +321,29 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
     fontSize: 12,
     paddingBottom: 5,
-  }
+  },
+  helpButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    backgroundColor: '#e49540',
+    borderRadius: 25,
+    width: 50,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 3,
+    zIndex: 3, // works on ios
+    elevation: 3, // works on android
+  },
+  helpText: {
+    color: 'white',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
 });
 
 export default HomeScreen;
